@@ -202,7 +202,12 @@ class Pipeline @Since("1.4.0") (
 
   @Since("1.6.0")
   override def write: MLWriter = new Pipeline.PipelineWriter(this)
-
+  this.addListener(new MLListener {
+    override def onEvent(event: MLListenEvent): Unit = {
+      SparkContext.getOrCreate().listenerBus.post(event)
+    }
+  })
+  postToAll(WritePipelineEvent())
 }
 
 @Since("1.6.0")

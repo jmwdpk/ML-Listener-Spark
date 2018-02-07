@@ -257,7 +257,7 @@ class PipelineSuite extends SparkFunSuite with MLlibTestSparkContext with Defaul
       .setStages(Array(writableStage))
     val recorder = mutable.Buffer.empty[MLListenEvent]
 
-    newPipeline.addListener(new MLListener {
+    newPipeline.write.addListener(new MLListener {
       override def onEvent(event: MLListenEvent): Unit = {
         recorder += event
       }
