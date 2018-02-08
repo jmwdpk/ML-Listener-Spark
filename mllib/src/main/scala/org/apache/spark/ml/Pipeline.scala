@@ -354,6 +354,12 @@ class PipelineModel private[ml] (
 
   @Since("1.6.0")
   override def write: MLWriter = new PipelineModel.PipelineModelWriter(this)
+  this.addListener(new MLListener {
+    override def onEvent(event: MLListenEvent): Unit = {
+      SparkContext.getOrCreate().listenerBus.post(event)
+    }
+  })
+  postToAll(WritePipelineModelEvent())
 }
 
 @Since("1.6.0")
@@ -367,7 +373,7 @@ object PipelineModel extends MLReadable[PipelineModel] {
   @Since("1.6.0")
   override def load(path: String): PipelineModel = super.load(path)
 
-  private[PipelineModel] class PipelineModelWriter(instance: PipelineModel) extends MLWriter {
+  class PipelineModelWriter(instance: PipelineModel) extends MLWriter {
 
     SharedReadWrite.validateStages(instance.stages.asInstanceOf[Array[PipelineStage]])
 

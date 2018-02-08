@@ -248,35 +248,35 @@ class PipelineSuite extends SparkFunSuite with MLlibTestSparkContext with Defaul
     assert(writableStage.getIntParam === writableStage2.getIntParam)
   }
 
-  def testWithPipelineReadWrite(name: String)(f: (
-    Pipeline, String, String, Seq[MLListenEvent] => Unit) => Unit): Unit = test(name) {
-    val uid = Math.random().toString
-    val path = Math.random().toString
-    val writableStage = new WritableStage("writableStage")
-    val newPipeline = new Pipeline()
-      .setStages(Array(writableStage))
-    val recorder = mutable.Buffer.empty[MLListenEvent]
-
-    newPipeline.write.addListener(new MLListener {
-      override def onEvent(event: MLListenEvent): Unit = {
-        recorder += event
-      }
-    })
-
-    f(newPipeline, uid, path, (expected: Seq[MLListenEvent]) => {
-      val actual = recorder.clone()
-      recorder.clear()
-      assert(expected === actual)
-    })
-  }
-
-  testWithPipelineReadWrite(
-    "Pipeline read/write tracker") { (newPipeline, uid, path, checkEvents) =>
-
-    newPipeline.write.save(path)
-
-    checkEvents(SavePipelineEvent(uid, path) :: Nil)
-  }
+//  def testWithPipelineReadWrite(name: String)(f: (
+//    Pipeline, String, String, Seq[MLListenEvent] => Unit) => Unit): Unit = test(name) {
+//    val uid = Math.random().toString
+//    val path = Math.random().toString
+//    val writableStage = new WritableStage("writableStage")
+//    val newPipeline = new Pipeline()
+//      .setStages(Array(writableStage))
+//    val recorder = mutable.Buffer.empty[MLListenEvent]
+//
+//    newPipeline.write.addListener(new MLListener {
+//      override def onEvent(event: MLListenEvent): Unit = {
+//        recorder += event
+//      }
+//    })
+//
+//    f(newPipeline, uid, path, (expected: Seq[MLListenEvent]) => {
+//      val actual = recorder.clone()
+//      recorder.clear()
+//      assert(expected === actual)
+//    })
+//  }
+//
+//  testWithPipelineReadWrite(
+//    "Pipeline read/write tracker") { (newPipeline, uid, path, checkEvents) =>
+//
+//    newPipeline.write.save(path)
+//
+//    checkEvents(SavePipelineEvent(uid, path) :: Nil)
+//  }
 
   test("Pipeline read/write with non-Writable stage") {
     val unWritableStage = new UnWritableStage("unwritableStage")
@@ -298,6 +298,36 @@ class PipelineSuite extends SparkFunSuite with MLlibTestSparkContext with Defaul
     assert(pipeline2.stages(0).isInstanceOf[WritableStage])
     val writableStage2 = pipeline2.stages(0).asInstanceOf[WritableStage]
     assert(writableStage.getIntParam === writableStage2.getIntParam)
+  }
+
+  def testWithPipelineModelReadWrite(name: String)(f: (
+    PipelineModel, String, String, Seq[MLListenEvent] => Unit) => Unit): Unit = test(name) {
+    val uid = Math.random().toString
+    val path = Math.random().toString
+    val writableStage = new WritableStage("writableStage")
+    val pipelineModel =
+      new PipelineModel("pipeline_89329329", Array(writableStage.asInstanceOf[Transformer]))
+    val recorder = mutable.Buffer.empty[MLListenEvent]
+
+    pipelineModel.write.addListener(new MLListener {
+      override def onEvent(event: MLListenEvent): Unit = {
+        recorder += event
+      }
+    })
+
+    f(pipelineModel, uid, path, (expected: Seq[MLListenEvent]) => {
+      val actual = recorder.clone()
+      recorder.clear()
+      assert(expected === actual)
+    })
+  }
+
+  testWithPipelineModelReadWrite(
+    "PipelineModel read/write tracker") { (pipelineModel, uid, path, checkEvents) =>
+
+    pipelineModel.write.save(path)
+
+    checkEvents(SaveModelEvent(uid, path) :: Nil)
   }
 
   test("PipelineModel read/write: getStagePath") {

@@ -52,6 +52,9 @@ case class WritePipelineEvent() extends MLListenEvent
 case class SavePipelineEvent(uid: String, directory: String) extends MLListenEvent
 
 @DeveloperApi
+case class WritePipelineModelEvent() extends MLListenEvent
+
+@DeveloperApi
 case class SaveModelEvent(uid: String, directory: String) extends MLListenEvent
 
 @DeveloperApi
