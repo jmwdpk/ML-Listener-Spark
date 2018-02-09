@@ -373,7 +373,7 @@ object PipelineModel extends MLReadable[PipelineModel] {
   @Since("1.6.0")
   override def load(path: String): PipelineModel = super.load(path)
 
-  class PipelineModelWriter(instance: PipelineModel) extends MLWriter {
+  private[PipelineModel] class PipelineModelWriter(instance: PipelineModel) extends MLWriter {
 
     SharedReadWrite.validateStages(instance.stages.asInstanceOf[Array[PipelineStage]])
 
